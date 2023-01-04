@@ -1,0 +1,2 @@
+PYTHONPATH="$(pwd):$PYTHONPATH"
+export PYTHONPATH
