@@ -66,9 +66,9 @@ GATES = dict(
 
 class Gate:
 
-    def __init__(self, name: str = "Gate"):
-        self.name = name
-        self.gate = self.fetch_gate(name)
+    def __init__(self, label: str = "Gate"):
+        self.label = label
+        self.gate = self.fetch_gate(label)
         self.parameter = None
         self.trainable = False
 

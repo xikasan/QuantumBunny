@@ -3,7 +3,7 @@
 from qiskit import QuantumCircuit, QuantumRegister
 from typing import Callable
 
-from .base import Gate
+from .gate import Gate
 
 
 CARES = dict(
@@ -21,8 +21,8 @@ class Care(Gate):
 
     GATE = CARES
 
-    def __init__(self, name: str = "Care"):
-        super().__init__(name)
+    def __init__(self, label: str = "Care"):
+        super().__init__(label)
 
     @staticmethod
     def fetch_gate(label: str) -> Callable:

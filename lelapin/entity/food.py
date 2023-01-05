@@ -3,7 +3,7 @@
 from qiskit import QuantumCircuit, QuantumRegister
 from typing import Callable
 
-from .base import Gate
+from .gate import Gate
 
 
 FOODS = dict(
