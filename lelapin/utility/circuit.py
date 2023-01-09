@@ -10,3 +10,7 @@ def prepare(nq: int) -> Tuple[QuantumCircuit, QuantumRegister]:
     qr = QuantumRegister(nq)
     qc.add_register(qr)
     return qc, qr
+
+
+def aj(x: np.ndarray) -> np.ndarray:
+    return np.conjugate(x).T

@@ -43,7 +43,7 @@ class Lapin(Gate):
         # generate at random
         genome_init = sum([
             [
-                str(Gate(f"rx{i+1}"))
+                f"rx{i+1}"
                 for _ in range(np.random.randint(0, 180 // ROT_DEG, dtype=int))
             ] for i in range(self.NUM_QUBIT)
         ], [])
