@@ -5,6 +5,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from typing import List, Optional
 
 from .gate import Gate, ROT_DEG, GATES
+from ..manager.score import ScoreManager
 
 
 class Lapin(Gate):
@@ -17,13 +18,17 @@ class Lapin(Gate):
             self,
             name: Optional[str] = "Lapin",
             genome: Optional[List[str]] = None,
-            size: Optional[int] = 5
+            size: Optional[int] = 5,
+            max_score: float = 2.,
+            min_score: float = -1.
+
     ):
         super()
         self.name = name
         self.label = name
         self.genome = self._decode(name, genome, size)
         self.gate = lambda qc, qr: [g(qc, qr) for g in self.genome]
+        self.sman = ScoreManager(max=max_score, min=min_score)
 
     @staticmethod
     def fetch_gate(_):
