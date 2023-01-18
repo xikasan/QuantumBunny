@@ -103,7 +103,7 @@ class Gate:
             qc, qr = prepare(nq)
             self.process(qc, qr, *args, **kwargs)
             wrapped_gate = qc.to_gate()
-            wrapped_gate.name = self.name
+            wrapped_gate.name = self.label
             return wrapped_gate
 
     @staticmethod

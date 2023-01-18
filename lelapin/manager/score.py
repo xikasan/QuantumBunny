@@ -43,5 +43,5 @@ class ScoreManager:
         return self._scores @ bits
 
     @property
-    def points(self) -> np.ndarray:
+    def score(self) -> np.ndarray:
         return self._scores.copy()

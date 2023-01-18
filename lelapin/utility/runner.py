@@ -10,6 +10,7 @@ from ..entity.care import Care
 from ..entity.food import Food
 from ..entity.lapin import Lapin
 from .circuit import prepare, aj
+from ..utility import prob
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -37,13 +38,37 @@ class Runner:
     def feed(self, food: Food):
         self.food = food
 
-    def execute(self, backend=Backend.qasm):
+    def resset_food_care(self):
+        self.cares = []
+        self.food = None
+
+    def execute(self, backend=Backend.qasm, keep_food_care=False):
         if backend == self.BACKEND.qasm:
-            res = self._exec_qasm()
-            res = self._convert_from_str_to_ints(res)
+            bits = self._exec_qasm()
         if backend == self.BACKEND.statevector:
-            res = self._exec_statevector()
-            res = self._convert_to_prob(res)
+            res = self._state_prob()
+            bits = np.random.choice(np.arange(len(res)), p=res)
+            bits = format(bits, "03b")
+        bits = self._convert_from_str_to_ints(bits)
+        score = self.lapin.sman.observe(bits)
+        is_mutated = self._mutate(score)
+        res = (score, bits, is_mutated)
+        if not keep_food_care:
+            self.reset_food_care()
+        return res
+
+    def probability(self):
+        probs = self._state_prob()
+        probs = prob.state_to_prob_for_bit(probs)
+        return probs
+
+    def score(self):
+        score = self.lapin.sman.score
+        return score
+
+    def _state_prob(self):
+        res = self._exec_statevector()
+        res = self._convert_to_prob(res)
         return res
 
     def draw(self, output: str = "mpl", ax: Optional[plt.Axes] = None):
@@ -79,10 +104,11 @@ class Runner:
 
     def _build_circuit(self, qc, qr, cr=None):
         is_statevec = cr is None
-        self.food(qc, qr)
+        if self.food is not None:
+            self.food(qc, qr, wrap=is_statevec)
         self.lapin(qc, qr, wrap=is_statevec)
         [
-            care(qc, qr)
+            care(qc, qr, wrap=is_statevec)
             for care in self.cares
         ]
         if cr is None:
@@ -98,6 +124,11 @@ class Runner:
     def _convert_to_prob(val):
         res = val * aj(val)
         return res.real
+
+    def _mutate(self, bits):
+        p = self.lapin.sman.p(bits)
+        is_mutated = self.lapin.genome.mutation(p, self.cares[-1])
+        return is_mutated
 
 
 if __name__ == "main":
