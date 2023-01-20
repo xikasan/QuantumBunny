@@ -32,17 +32,17 @@ class Runner:
         self.cares: List[Care] = []
         self.food: Optional[Food] = None
 
+    def resset_food_care(self):
+        self.cares = []
+        self.food = None
+
     def care(self, care: Care):
         self.cares.append(care)
 
     def feed(self, food: Food):
         self.food = food
 
-    def resset_food_care(self):
-        self.cares = []
-        self.food = None
-
-    def execute(self, backend=Backend.qasm, keep_food_care=False):
+    def execute(self, backend=Backend.qasm, keep_food_care=True):
         if backend == self.BACKEND.qasm:
             bits = self._exec_qasm()
         if backend == self.BACKEND.statevector:
@@ -65,6 +65,9 @@ class Runner:
     def score(self):
         score = self.lapin.sman.score
         return score
+
+    def num_care(self):
+        return len(self.cares)
 
     def _state_prob(self):
         res = self._exec_statevector()
