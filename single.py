@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from lelapin.game.breeding import GamerBreeding
+from lelapin.game.single import GamerSingle
 
 
 # temp parameters to go
@@ -23,7 +23,7 @@ def def_show(gamer):
     return f
 
 
-gamer = GamerBreeding(name)
+gamer = GamerSingle(name)
 show = def_show(gamer)
 
 print("name:", gamer.runner.lapin.name)

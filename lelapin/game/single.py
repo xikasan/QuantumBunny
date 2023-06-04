@@ -32,7 +32,7 @@ class GameState(Enum):
         return ret
 
 
-class GamerBreeding(Gamer):
+class GamerSingle(Gamer):
 
     CARES: Dict[str, str] = CARES
     FOODS: Dict[str, str] = FOODS
