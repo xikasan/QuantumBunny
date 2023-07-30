@@ -1,2 +1,2 @@
-# LeLapin
-This repository is to develop the quantum lapin breading game.
+# Quantum Bunny
+This repository is to develop quantum application "Quantum Bunny".

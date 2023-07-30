@@ -52,7 +52,7 @@ class GamerSingle(Gamer):
 
     def step_0_reset(self):
         self.state = GameState.START
-        self.runner.resset_food_care()
+        self.runner.reset_food_care()
 
     def step_1_care(self, care: str):
         assert GameState.is_possible_care(self.state)
