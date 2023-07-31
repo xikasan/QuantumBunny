@@ -32,7 +32,7 @@ class Runner:
         self.cares: List[Care] = []
         self.food: Optional[Food] = None
 
-    def resset_food_care(self):
+    def reset_food_care(self):
         self.cares = []
         self.food = None
 
