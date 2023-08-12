@@ -37,38 +37,38 @@
     </div>
     <div id="cards">
         ご飯カード or お世話カード
-        <script>
-            function write_form_for_card(label) {
-                document.write(
-                    "<form method='POST' name='CARD' action=\"{{ url_for('game_single') }}\">" +
-                    "<input type='hidden' name='care' value='"
-                );
-                document.write(label);
-                document.write("'></form>");
-
-            }
-            function write_alink_for_card(label, canSelect, no) {
-                if (canSelect) {
+        <ul>
+            <script>
+                function write_form_for_card(label) {
                     document.write(
-                        `<a href="javascript:CARD[${no}].submit()">${label}</a>`
+                        "<form method='POST' name='CARD' action=\"{{ url_for('game_single') }}\">" +
+                        "<input type='hidden' name='care' value='"
                     );
-                } else {
-                    document.write(label)
+                    document.write(label);
+                    document.write("'></form>");
                 }
-            }
 
-            for (let i = 0; i < cards_and_flags.length; i++) {
-                let card_and_flag = cards_and_flags[i];
-                let card = card_and_flag[0];
-                let canSelect = !Number(card_and_flag[1]);
+                function write_alink_for_card(label, no) {
+                    document.write(
+                        `<li><a href="javascript:CARD[${no}].submit()">${label}</a></li>`
+                    );
+                }
 
-                if (canSelect) {
+                for (let i = 0; i < cards_and_flags.length; i++) {
+                    let card_and_flag = cards_and_flags[i];
+                    let card = card_and_flag[0];
+                    let canSelect = !Number(card_and_flag[1]);
+
                     write_form_for_card(card);
-                    write_alink_for_card(card, canSelect, i);
-                }
+                    if (canSelect) {
+                        write_alink_for_card(card, i);
+                    } else {
+                        document.write(`<li>${card}</li>`)
+                    }
 
-            }
-        </script>
+                }
+            </script>
+        </ul>
     </div>
 </div>
 </body>
