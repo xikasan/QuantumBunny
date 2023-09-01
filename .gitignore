@@ -1,7 +1,9 @@
 # python dev
 .pyc
 .idea
+.db
 __pycache__/
+.ipynb_checkpoints/
 
 # mac
 .DS_Store
