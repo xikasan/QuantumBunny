@@ -1,6 +1,7 @@
 # python dev
 .pyc
 .idea
+*.db
 __pycache__/
 
 # mac
