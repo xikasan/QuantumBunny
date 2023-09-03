@@ -6,15 +6,17 @@ from qbunny.model.lapin import Lapin, LapinDataManager
 
 
 def run(args):
-    lapin_dummy = pd.read_csv(
-        "data/dummy/dummy_lapin.csv",
-        names=["name", "genome", "points", "user"]
-    )
     ldm = LapinDataManager("data/lapin.db")
-    # for i, lapin in lapin_dummy.iterrows():
-    #     ldm.create(*ldm.decode_data(tuple(
-    #         [lapin["name"], lapin["genome"], lapin["points"], lapin["user"]]
-    #     )))
+
+    if args.dummy:
+        lapin_dummy = pd.read_csv(
+            "data/dummy/dummy_lapin.csv",
+            names=["name", "genome", "points", "user"]
+        )
+        for i, lapin in lapin_dummy.iterrows():
+            ldm.create(*ldm.decode_data(tuple(
+                [lapin["name"], lapin["genome"], lapin["points"], lapin["user"]]
+            )))
     [print(l) for l in ldm.load_lapin()]
 
 
