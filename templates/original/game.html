@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuantumBunny|Game</title>
+    <script>
+        var lapinInfo = {{ lapin_info | tojson }};
+        var gameState = {{ game_state | tojson }};
+        var cardsAndFlags = {{ cards_and_flags | tojson }};
+        var score = {{ score | tojson }};
+    </script>
+</head>
+<body>
+<h1>Quantum Bunny</h1>
+<h2>Base Game</h2>
+<div id="game">
+    <div id="state">
+        <div id="container-food">
+            <h3>おやつ</h3>
+            選択：
+            <script>
+                if (gameState["food"] == null) {
+                    document.write("Not selected");
+                } else {
+                    document.write(gameState["food"]);
+                }
+            </script>
+        </div>
+        <div id="container-lapin">
+            <h3>うさぎ</h3>
+            <div id="lapin-name">
+                なまえ：
+                <script>
+                    document.write(lapinInfo["name"])
+                </script>
+            </div>
+            うさぎの画像：
+            <script>
+                // document.write(`<img src="${lapinInfo["image"]}">`);
+                document.write(lapinInfo["image"]);
+            </script>
+        </div>
+        <div id="container-care-1">
+            <h3>お世話</h3>
+            選択：
+            <script>
+                if (gameState["cares"] == null) {
+                    document.write("Not selected");
+                } else {
+                    document.write("<ul>");
+                    for (let i = 0; i < gameState["cares"].length; i++) {
+                        document.write(`<li>${gameState["cares"][i]}</li>`);
+                    }
+                    document.write("</ul>");
+                }
+            </script>
+        </div>
+        <div id="container-scores">
+            <h3>得点リスト</h3>
+            <ul>
+                <script>
+                    let scores = gameState["scores"]
+                    for (let i = 0; i < scores.length; i++ ) {
+                        document.write(`<li>${Math.round(scores[i] * 100) / 100}</li>`)
+                    }
+                </script>
+            </ul>
+        </div>
+    </div>
+    <div id="cards">
+        <h3>カード</h3>
+        <ul>
+            <script src="{{ url_for('static', filename='javascript/game.js') }}"></script>
+            <script>
+                write_cards(cardsAndFlags, "food", "{{ url_for('game') }}");
+                write_cards(cardsAndFlags, "care", "{{ url_for('game') }}");
+            </script>
+        </ul>
+    </div>
+    <div id="score">
+        <script>
+            if (score != null) {
+                score = Number(score);
+                document.write(`<p>${Math.round(score * 100) / 100}</p>`)
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

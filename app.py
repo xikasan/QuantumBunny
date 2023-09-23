@@ -11,7 +11,6 @@ from lelapin.game.base import Gamer
 from lelapin.web.conductor import rebuild
 from lelapin.web.game import *
 
-
 app = Flask(__name__)
 
 app.secret_key = "MmeUmekodelapin"
@@ -25,6 +24,18 @@ available_foods = ["carrot", "timothy"]
 #
 # + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 
+# Parameter
+# 画像の初期位置
+x1 = 10
+y1 = 440
+x2 = 110
+y2 = 440
+
+# おやつ画像をドロップできる位置を指定
+dA_snack_x1 = 109
+dA_snack_y1 = 297.5
+dA_snack_x2 = 198
+dA_snack_y2 = 390.5
 
 @app.route("/")
 def index():
@@ -81,6 +92,7 @@ def game():
         game_state=game_state,
         cards_and_flags=cards_and_flags,
         score=score,
+        x1=x1, y1=y1, x2=x2, y2=y2, dA_snack_x1=dA_snack_x1, dA_snack_y1=dA_snack_y1, dA_snack_x2=dA_snack_x2, dA_snack_y2=dA_snack_y2
     )
 
 

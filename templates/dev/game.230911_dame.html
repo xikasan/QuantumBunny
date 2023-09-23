@@ -131,36 +131,18 @@
     </script>
 </head>
 <body>
-<!-- <h1>Quantum Bunny</h1> -->
-<!-- <h2>Base Game</h2> -->
+<h1>Quantum Bunny</h1>
+<h2>Base Game</h2>
 <div id="game">
     <div id="background">
         <img src="{{ url_for('static', filename='Curcit.png') }}" alt="Background Image" width="80%">
     </div>
-    <div id="lapin-name">
-        <div style="position: absolute; top: 80px; left: 40px; font-size: 20px;"> <!-- font-family: Arial, sans-serif;"> -->
-            <label for="lapin-name-input">なまえ</label>
-        </div>
-        <input type="text" id="lapin-name-input" value="" maxlength="30" style="position: absolute; width: 150px; height: 25px; top: 80px; left: 110px; font-size: 20px;">
-        <script>
-            let lapinName = lapinInfo["name"];
-            let NameInputElement = document.getElementById("lapin-name-input");
-            NameInputElement.value = lapinName;
-        </script>
-    </div>
     <div id="lapin-image">
         <script>
-            let lapinImageFilename = lapinInfo["image"];
-    
-            if (lapinImageFilename !== undefined && lapinImageFilename !== null && lapinImageFilename !== "") {
-                let imgElement = document.createElement("img");
-                imgElement.src = "/static/" + lapinImageFilename; // 静的ファイルへのパスを直接指定
-                imgElement.alt = "Lapin Image";
-                imgElement.style.position = "absolute";
-                imgElement.style.top = "115px"; // 上から20px
-                imgElement.style.left = "35px"; // 左から20px
-                imgElement.style.width = "15.6%"; // 画像の幅を50%にする
-                document.getElementById("lapin-image").appendChild(imgElement);
+            lef lapin-image-filename = lapinInfo["image"]
+
+            if (lapin-image-filename != null) {
+                <img src="{{ url_for('static', filename='lapin-image-filename') }}" alt="Background Image">
             }
         </script>
     </div>
@@ -177,30 +159,6 @@
             scoreElement.textContent = `${Math.round(scores[i] * 100) / 100}`;// テキストを設定
             scoreContainer.appendChild(scoreElement);
         }
-    </script>
-    <div id="food-image"></div>
-    <script>
-        let food = "alfalfa" // gameState["food"]
-        // ファイル名をマップする辞書を作成
-        let filenameMap = {
-             "alfalfa": "alfalfa.jpg",
-               "apple": "apple.jpg",
-              "carrot": "carrot.jpg",
-              "papaya": "papaya.jpg",
-             "timothy": "timothy.jpg",
-            // 他の値に対するファイル名を追加
-        };
-        let foodImageFilename = filenameMap[food] || "";
-        if (foodImageFilename !== undefined && foodImageFilename !== null && foodImageFilename !== "") {
-                let imgElement = document.createElement("img");
-                imgElement.src = "/static/" + foodImageFilename; // 静的ファイルへのパスを直接指定
-                imgElement.alt = "Food Image";
-                imgElement.style.position = "absolute";
-                imgElement.style.top = "365px";
-                imgElement.style.left = "115px";
-                imgElement.style.width = "5.2%";
-                document.getElementById("food-image").appendChild(imgElement);
-            }
     </script>
     <div id="state">
         <div id="container-food">
