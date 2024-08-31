@@ -14,7 +14,6 @@ from lelapin.web.game import *
 app = Flask(__name__)
 
 app.secret_key = "MmeUmekodelapin"
-#app.permanent_session_lifetime = timedelta(minutes=1)
 app.permanent_session_lifetime = timedelta(hours=24)
 
 
@@ -136,7 +135,6 @@ def calc_and_return_result():
                 gamer.execute()
 
             if gamer.result:
-                #result_bit_list = [gamer.result[1][0], gamer.result[1][1], gamer.result[1][2]]
                 result_bit_list = [int(gamer.result[1][0]), int(gamer.result[1][1]), int(gamer.result[1][2])]
                 score = result_bit_list[0] * game_state['scores'][0] + result_bit_list[1] * game_state['scores'][1] + result_bit_list[2] * game_state['scores'][2]
 
