@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 
-from flask import Flask, render_template, session, request
+from flask import Flask, render_template, session, request, jsonify
 from datetime import timedelta
 
 from lelapin.game.base import Gamer
 from lelapin.entity.lapin import Lapin
 from lelapin.manager.genome import GenomeManager
 from lelapin.utility.runner import Runner
-from lelapin.game.base import Gamer
 from lelapin.web.conductor import rebuild
 from lelapin.web.game import *
+
 
 app = Flask(__name__)
 
 app.secret_key = "MmeUmekodelapin"
-app.permanent_session_lifetime = timedelta(minutes=1)
+#app.permanent_session_lifetime = timedelta(minutes=1)
+app.permanent_session_lifetime = timedelta(hours=24)
 
 
 # + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
@@ -24,18 +25,15 @@ available_foods = ["carrot", "timothy"]
 #
 # + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
 
-# Parameter
-# 画像の初期位置
-x1 = 10
-y1 = 440
-x2 = 110
-y2 = 440
-
-# おやつ画像をドロップできる位置を指定
-dA_snack_x1 = 109
-dA_snack_y1 = 297.5
-dA_snack_x2 = 198
-dA_snack_y2 = 390.5
+# セッションからゲーム状態を取得し、存在しない場合は初期化
+def initialize_game_state(session, runner):
+    if 'game_state' not in session:
+        session['game_state'] = {
+            "cares": [],
+            "food": None,
+            "scores": runner.score().tolist()
+        }
+    return session['game_state']
 
 @app.route("/")
 def index():
@@ -44,10 +42,16 @@ def index():
 
 @app.route("/game", methods=["GET", "POST"])
 def game():
-    # for "POST":
-    selected_care = request.form.get("care", None)
-    selected_food = request.form.get("food", None)
-    print(selected_care, selected_food)
+    data = request.get_json()
+    try:
+        selected_food = data['selected_food']
+    except:
+        selected_food = None
+
+    try:
+        selected_care = data['selected_care']
+    except:
+        selected_care = None
 
     # lapin
     lapin, lapin_info = load_lapin()
@@ -55,34 +59,44 @@ def game():
     gamer = Gamer()
     gamer.runner = runner
 
-    # game state
-    game_state = load_state()
-    game_state["scores"] = runner.score().tolist()
-    if selected_care is not None:
-        game_state["cares"].append(selected_care)
-    if selected_food is not None:
+    game_state = initialize_game_state(session, runner)
+
+    # ゲーム状態を更新
+    if selected_care:
+        game_state["cares"] = selected_care
+    if selected_food:
         game_state["food"] = selected_food
-    print("game_state:", game_state)
 
     # apply cards
-    score = None
+    score = 0.0
+    result_bit_list = [0, 0, 0]
     [gamer.care(care) for care in game_state["cares"]]
+
     if game_state["food"] is not None:
         gamer.feed(game_state["food"])
         gamer.execute()
-    print("result:", gamer.result)
+
+    if gamer.result:
+        result_bit_list = [gamer.result[1][0], gamer.result[1][1], gamer.result[1][2]]
+        score = result_bit_list[0] * game_state['scores'][0] + result_bit_list[1] * game_state['scores'][1] + result_bit_list[2] * game_state['scores'][2]
+
+    result_data = {
+        "result_score": score,
+        "result_bit_list": result_bit_list
+    }
 
     cards_and_flags = load_cards_and_flags()
-    # mod for debug
     cards_and_flags[KEY_CARDS_CARE] = [
-        dict(label=c, is_selected=1 if c in game_state["cares"] else 0)
+        dict(label=c, is_selected=1 if c in game_state.get("cares", []) else 0)
         for c in available_cares
     ]
     cards_and_flags[KEY_CARDS_FOOD] = [
-        dict(label=f, is_selected=1 if f == game_state["food"] else 0)
+        dict(label=f, is_selected=1 if f == game_state.get("food") else 0)
         for f in available_foods]
 
-    # write to session
+    # セッションにゲーム状態を保存
+    session['game_state'] = game_state
+
     save_lapin(lapin_info)
     save_state(game_state)
 
@@ -92,9 +106,54 @@ def game():
         game_state=game_state,
         cards_and_flags=cards_and_flags,
         score=score,
-        x1=x1, y1=y1, x2=x2, y2=y2, dA_snack_x1=dA_snack_x1, dA_snack_y1=dA_snack_y1, dA_snack_x2=dA_snack_x2, dA_snack_y2=dA_snack_y2
+        result_data=result_data, # `gamer.result`をテンプレートに渡す
     )
 
+@app.route("/call_from_ajax", methods = ["POST"])
+def calc_and_return_result():
+    if request.method == "POST":
+        # 計算実行
+        try:
+            data = request.get_json()
+            selected_food = data.get('selected_food', None)
+            selected_care = data.get('selected_care', [])
+
+            # lapin
+            lapin, lapin_info = load_lapin()
+            runner = Runner(lapin)
+            gamer = Gamer()
+            gamer.runner = runner
+
+            game_state = initialize_game_state(session, runner)
+            game_state["cares"] = selected_care if selected_care else []
+            game_state["food"] = selected_food
+
+            score = None
+            [gamer.care(care) for care in game_state["cares"]]
+
+            if game_state["food"] is not None:
+                gamer.feed(game_state["food"])
+                gamer.execute()
+
+            if gamer.result:
+                #result_bit_list = [gamer.result[1][0], gamer.result[1][1], gamer.result[1][2]]
+                result_bit_list = [int(gamer.result[1][0]), int(gamer.result[1][1]), int(gamer.result[1][2])]
+                score = result_bit_list[0] * game_state['scores'][0] + result_bit_list[1] * game_state['scores'][1] + result_bit_list[2] * game_state['scores'][2]
+
+            message = {
+                "result_score": score,
+                "result_bit_list": result_bit_list if gamer.result else None
+            }
+            # セッションにゲーム状態を保存
+            session['game_state'] = game_state
+
+            save_lapin(lapin_info)
+            save_state(game_state)
+
+        except Exception as e:
+            message = str(e)
+
+    return jsonify({"answer": message})
 
 @app.route("/game/single", methods=["GET", "POST"])
 def game_single():

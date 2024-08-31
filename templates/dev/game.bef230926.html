@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>QuantumBunny|Game</title>
+
+    <style>
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+        #image1, #image2 {
+            position: absolute;
+            cursor: move;
+        }
+        #image1 img, #image2 img {
+            width: 100px;
+            transition: width 0.3s ease-in-out;
+        }
+        #dA_snack {
+            position: absolute;
+            z-index: 1;
+            left: {{ dA_snack_x1 }}px;
+            top: {{ dA_snack_y1 }}px;
+            width: {{ dA_snack_x2 - dA_snack_x1 }}px;
+            height: {{ dA_snack_y2 - dA_snack_y1 }}px;
+        }
+        .score {
+            position: absolute; /* 絶対位置指定 */
+            font-size: 24px; /* フォントサイズを調整 */
+            color: black; /* テキストの色を設定 */
+            font-family: Arial, sans-serif; /* フォントファミリーを設定 */
+            background-color: white; /* 背景色を設定 */
+            padding: 5px; /* テキストのパディングを設定 */
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        var lapinInfo = {{ lapin_info | tojson }};
+        var gameState = {{ game_state | tojson }};
+        var cardsAndFlags = {{ cards_and_flags | tojson }};
+        var score = {{ score | tojson }};
+    </script>
+    <script>
+        $(document).ready(function() {
+            // 初期位置を記憶
+            var initialPositions = {
+                image1: { x: {{ x1 }}, y: {{ y1 }} },
+                image2: { x: {{ x2 }}, y: {{ y2 }} }
+            };
+
+            var dA_snack_x1 = {{ dA_snack_x1 }};
+            var dA_snack_y1 = {{ dA_snack_y1 }};
+            var dA_snack_x2 = {{ dA_snack_x2 }};
+            var dA_snack_y2 = {{ dA_snack_y2 }};
+            // console.log(dA_snack_x1);
+            // console.log(dA_snack_y1);
+            // console.log(dA_snack_x2);
+            // console.log(dA_snack_y2);
+            
+            // 画像のドラッグイベントを設定
+            $('#image1, #image2').on('mousedown', function(event) {
+                var $image = $(this);
+                var imageWidth = $image.find('img').width();
+                var offsetX = event.pageX - parseInt($image.css('left'));
+                var offsetY = event.pageY - parseInt($image.css('top'));
+                $image.css('z-index', '1');
+                $image.find('img').css('width', '150px');
+
+                $(document).on('mousemove', function(event) {
+                    var posX = event.pageX - offsetX;
+                    var posY = event.pageY - offsetY;
+                    var maxWidth = $('#background').width() - imageWidth;
+                    var maxHeight = $('#background').height() - imageWidth;
+                    
+                    posX = Math.min(Math.max(posX, 0), maxWidth);
+                    posY = Math.min(Math.max(posY, 0), maxHeight);
+                    
+                    $image.css('left', posX);
+                    $image.css('top', posY);
+                });
+            });
+
+            $(document).on('mouseup', function() {
+                $('#image1, #image2').css('z-index', '0');
+                $('#image1, #image2').find('img').css('width', '100px');
+                $(document).off('mousemove');
+
+                if (
+                    ($('#image1').position().left >= dA_snack_x1 && $('#image1').position().left <= dA_snack_x2 && $('#image1').position().top >= dA_snack_y1 && $('#image1').position().top <= dA_snack_y2)
+                    // ($('#image1').position().left >= 109 && $('#image1').position().left <= 198 && $('#image1').position().top >= 297.5 && $('#image1').position().top <= 390.5)
+                    // ($('#image1').position().left >= 700)
+                ) {
+                    $('#image1').css('left', dA_snack_x1);
+                    $('#image1').css('top',  dA_snack_y1);
+                } else {
+                    $('#image1').css('left', initialPositions['image1'].x);
+                    $('#image1').css('top',  initialPositions['image1'].y);
+                }
+                if (
+                    ($('#image2').position().left >= dA_snack_x1 && $('#image2').position().left <= dA_snack_x2 && $('#image2').position().top >= dA_snack_y1 && $('#image2').position().top <= dA_snack_y2)
+                    // ($('#image2').position().left >= 109  && $('#image2').position().left <= 198 && $('#image2').position().top >= 297.5 && $('#image2').position().top <= 390.5)
+                    // ($('#image2').position().left >= 1000)
+                ) {
+                    $('#image2').css('left', dA_snack_x1);
+                    $('#image2').css('top',  dA_snack_y1);
+                } else {
+                    $('#image2').css('left', initialPositions['image2'].x);
+                    $('#image2').css('top',  initialPositions['image2'].y);
+                }
+
+                // 位置情報をサーバーに送信
+                $.ajax({
+                    type: 'POST',
+                    url: '/update_position',
+                    data: {
+                        x1: $('#image1').css('left'),
+                        y1: $('#image1').css('top'),
+                        x2: $('#image2').css('left'),
+                        y2: $('#image2').css('top')
+                    },
+                    success: function(response) {
+                        console.log('Position updated successfully');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<!-- <h1>Quantum Bunny</h1> -->
+<!-- <h2>Base Game</h2> -->
+<div id="game">
+    <div id="background">
+        <img src="{{ url_for('static', filename='Curcit.png') }}" alt="Background Image" width="80%">
+    </div>
+    <div id="lapin-name">
+        <div style="position: absolute; top: 80px; left: 40px; font-size: 20px;"> <!-- font-family: Arial, sans-serif;"> -->
+            <label for="lapin-name-input">なまえ</label>
+        </div>
+        <input type="text" id="lapin-name-input" value="" maxlength="30" style="position: absolute; width: 150px; height: 25px; top: 80px; left: 110px; font-size: 20px;">
+        <script>
+            let lapinName = lapinInfo["name"];
+            let NameInputElement = document.getElementById("lapin-name-input");
+            NameInputElement.value = lapinName;
+        </script>
+    </div>
+    <div id="lapin-image">
+        <script>
+            let lapinImageFilename = lapinInfo["image"];
+    
+            if (lapinImageFilename !== undefined && lapinImageFilename !== null && lapinImageFilename !== "") {
+                let imgElement = document.createElement("img");
+                imgElement.src = "/static/" + lapinImageFilename; // 静的ファイルへのパスを直接指定
+                imgElement.alt = "Lapin Image";
+                imgElement.style.position = "absolute";
+                imgElement.style.top = "115px"; // 上から20px
+                imgElement.style.left = "35px"; // 左から20px
+                imgElement.style.width = "15.6%"; // 画像の幅を50%にする
+                document.getElementById("lapin-image").appendChild(imgElement);
+            }
+        </script>
+    </div>
+    <div id="scoreContainer"></div>
+    <script>
+        let scores = gameState["scores"]
+        let scoreContainer = document.getElementById("scoreContainer");
+
+        for (let i = 0; i < scores.length; i++ ) {
+            let scoreElement = document.createElement("div");
+            scoreElement.className = "score";
+            scoreElement.style.top = `${137 + 80 * i}px`;
+            scoreElement.style.left = "820px";
+            scoreElement.textContent = `${Math.round(scores[i] * 100) / 100}`;// テキストを設定
+            scoreContainer.appendChild(scoreElement);
+        }
+    </script>
+    <div id="food-image"></div>
+    <script>
+        let food = "alfalfa" // gameState["food"]
+        // ファイル名をマップする辞書を作成
+        let filenameMap = {
+             "alfalfa": "alfalfa.jpg",
+               "apple": "apple.jpg",
+              "carrot": "carrot.jpg",
+              "papaya": "papaya.jpg",
+             "timothy": "timothy.jpg",
+            // 他の値に対するファイル名を追加
+        };
+        let foodImageFilename = filenameMap[food] || "";
+        if (foodImageFilename !== undefined && foodImageFilename !== null && foodImageFilename !== "") {
+                let imgElement = document.createElement("img");
+                imgElement.src = "/static/" + foodImageFilename; // 静的ファイルへのパスを直接指定
+                imgElement.alt = "Food Image";
+                imgElement.style.position = "absolute";
+                imgElement.style.top = "365px";
+                imgElement.style.left = "115px";
+                imgElement.style.width = "5.2%";
+                document.getElementById("food-image").appendChild(imgElement);
+            }
+    </script>
+    <div id="state">
+        <div id="container-food">
+            <h3>おやつ</h3>
+            選択：
+            <script>
+                if (gameState["food"] == null) {
+                    document.write("Not selected");
+                } else {
+                    document.write(gameState["food"]);
+                }
+            </script>
+        </div>
+        <div id="container-lapin">
+            <h3>うさぎ</h3>
+            <div id="lapin-name">
+                なまえ：
+                <script>
+                    document.write(lapinInfo["name"])
+                </script>
+            </div>
+            うさぎの画像：
+            <script>
+                // document.write(`<img src="${lapinInfo["image"]}">`);
+                document.write(lapinInfo["image"]);
+            </script>
+        </div>
+        <div id="container-care-1">
+            <h3>お世話</h3>
+            選択：
+            <script>
+                if (gameState["cares"] == null) {
+                    document.write("Not selected");
+                } else {
+                    document.write("<ul>");
+                    for (let i = 0; i < gameState["cares"].length; i++) {
+                        document.write(`<li>${gameState["cares"][i]}</li>`);
+                    }
+                    document.write("</ul>");
+                }
+            </script>
+        </div>
+        <div id="container-scores">
+            <ul>
+                <script>
+                    let scores = gameState["scores"]
+                    for (let i = 0; i < scores.length; i++ ) {
+                        document.write(`<li>${Math.round(scores[i] * 100) / 100}</li>`)
+                    }
+                </script>
+            </ul>
+        </div>
+    </div>
+    <div id="cards">
+        <h3>カード</h3>
+        <ul>
+            <script src="{{ url_for('static', filename='javascript/game.js') }}"></script>
+            <script>
+                write_cards(cardsAndFlags, "food", "{{ url_for('game') }}");
+                write_cards(cardsAndFlags, "care", "{{ url_for('game') }}");
+            </script>
+        </ul>
+    </div>
+    <div id="score">
+        <script>
+            if (score != null) {
+                score = Number(score);
+                document.write(`<p>${Math.round(score * 100) / 100}</p>`)
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>

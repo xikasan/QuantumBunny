@@ -2,276 +2,200 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>QuantumBunny|Game</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <style>
-        #background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: -1;
+        * {
+          margin: 0;
+          padding: 0;
         }
-        #image1, #image2 {
-            position: absolute;
-            cursor: move;
+        body {
+          background-image: url('./static/Curcit.png');
+          background-repeat: no-repeat;
+          /* 他のスタイルプロパティも追加できます */
         }
-        #image1 img, #image2 img {
-            width: 100px;
-            transition: width 0.3s ease-in-out;
-        }
-        #dA_snack {
-            position: absolute;
-            z-index: 1;
-            left: {{ dA_snack_x1 }}px;
-            top: {{ dA_snack_y1 }}px;
-            width: {{ dA_snack_x2 - dA_snack_x1 }}px;
-            height: {{ dA_snack_y2 - dA_snack_y1 }}px;
-        }
-        .score {
-            position: absolute; /* 絶対位置指定 */
-            font-size: 24px; /* フォントサイズを調整 */
-            color: black; /* テキストの色を設定 */
-            font-family: Arial, sans-serif; /* フォントファミリーを設定 */
-            background-color: white; /* 背景色を設定 */
-            padding: 5px; /* テキストのパディングを設定 */
-        }
-    </style>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        var lapinInfo = {{ lapin_info | tojson }};
-        var gameState = {{ game_state | tojson }};
-        var cardsAndFlags = {{ cards_and_flags | tojson }};
-        var score = {{ score | tojson }};
-    </script>
-    <script>
-        $(document).ready(function() {
-            // 初期位置を記憶
-            var initialPositions = {
-                image1: { x: {{ x1 }}, y: {{ y1 }} },
-                image2: { x: {{ x2 }}, y: {{ y2 }} }
-            };
-
-            var dA_snack_x1 = {{ dA_snack_x1 }};
-            var dA_snack_y1 = {{ dA_snack_y1 }};
-            var dA_snack_x2 = {{ dA_snack_x2 }};
-            var dA_snack_y2 = {{ dA_snack_y2 }};
-            // console.log(dA_snack_x1);
-            // console.log(dA_snack_y1);
-            // console.log(dA_snack_x2);
-            // console.log(dA_snack_y2);
-            
-            // 画像のドラッグイベントを設定
-            $('#image1, #image2').on('mousedown', function(event) {
-                var $image = $(this);
-                var imageWidth = $image.find('img').width();
-                var offsetX = event.pageX - parseInt($image.css('left'));
-                var offsetY = event.pageY - parseInt($image.css('top'));
-                $image.css('z-index', '1');
-                $image.find('img').css('width', '150px');
-
-                $(document).on('mousemove', function(event) {
-                    var posX = event.pageX - offsetX;
-                    var posY = event.pageY - offsetY;
-                    var maxWidth = $('#background').width() - imageWidth;
-                    var maxHeight = $('#background').height() - imageWidth;
-                    
-                    posX = Math.min(Math.max(posX, 0), maxWidth);
-                    posY = Math.min(Math.max(posY, 0), maxHeight);
-                    
-                    $image.css('left', posX);
-                    $image.css('top', posY);
-                });
-            });
-
-            $(document).on('mouseup', function() {
-                $('#image1, #image2').css('z-index', '0');
-                $('#image1, #image2').find('img').css('width', '100px');
-                $(document).off('mousemove');
-
-                if (
-                    ($('#image1').position().left >= dA_snack_x1 && $('#image1').position().left <= dA_snack_x2 && $('#image1').position().top >= dA_snack_y1 && $('#image1').position().top <= dA_snack_y2)
-                    // ($('#image1').position().left >= 109 && $('#image1').position().left <= 198 && $('#image1').position().top >= 297.5 && $('#image1').position().top <= 390.5)
-                    // ($('#image1').position().left >= 700)
-                ) {
-                    $('#image1').css('left', dA_snack_x1);
-                    $('#image1').css('top',  dA_snack_y1);
-                } else {
-                    $('#image1').css('left', initialPositions['image1'].x);
-                    $('#image1').css('top',  initialPositions['image1'].y);
-                }
-                if (
-                    ($('#image2').position().left >= dA_snack_x1 && $('#image2').position().left <= dA_snack_x2 && $('#image2').position().top >= dA_snack_y1 && $('#image2').position().top <= dA_snack_y2)
-                    // ($('#image2').position().left >= 109  && $('#image2').position().left <= 198 && $('#image2').position().top >= 297.5 && $('#image2').position().top <= 390.5)
-                    // ($('#image2').position().left >= 1000)
-                ) {
-                    $('#image2').css('left', dA_snack_x1);
-                    $('#image2').css('top',  dA_snack_y1);
-                } else {
-                    $('#image2').css('left', initialPositions['image2'].x);
-                    $('#image2').css('top',  initialPositions['image2'].y);
-                }
-
-                // 位置情報をサーバーに送信
-                $.ajax({
-                    type: 'POST',
-                    url: '/update_position',
-                    data: {
-                        x1: $('#image1').css('left'),
-                        y1: $('#image1').css('top'),
-                        x2: $('#image2').css('left'),
-                        y2: $('#image2').css('top')
-                    },
-                    success: function(response) {
-                        console.log('Position updated successfully');
-                    }
-                });
-            });
-        });
-    </script>
+    </style>  
+    <title>QuantumBunny|Game</title>
 </head>
 <body>
-<!-- <h1>Quantum Bunny</h1> -->
-<!-- <h2>Base Game</h2> -->
-<div id="game">
-    <div id="background">
-        <img src="{{ url_for('static', filename='Curcit.png') }}" alt="Background Image" width="80%">
-    </div>
-    <div id="lapin-name">
-        <div style="position: absolute; top: 80px; left: 40px; font-size: 20px;"> <!-- font-family: Arial, sans-serif;"> -->
-            <label for="lapin-name-input">なまえ</label>
-        </div>
-        <input type="text" id="lapin-name-input" value="" maxlength="30" style="position: absolute; width: 150px; height: 25px; top: 80px; left: 110px; font-size: 20px;">
-        <script>
-            let lapinName = lapinInfo["name"];
-            let NameInputElement = document.getElementById("lapin-name-input");
-            NameInputElement.value = lapinName;
-        </script>
-    </div>
-    <div id="lapin-image">
-        <script>
-            let lapinImageFilename = lapinInfo["image"];
-    
-            if (lapinImageFilename !== undefined && lapinImageFilename !== null && lapinImageFilename !== "") {
-                let imgElement = document.createElement("img");
-                imgElement.src = "/static/" + lapinImageFilename; // 静的ファイルへのパスを直接指定
-                imgElement.alt = "Lapin Image";
-                imgElement.style.position = "absolute";
-                imgElement.style.top = "115px"; // 上から20px
-                imgElement.style.left = "35px"; // 左から20px
-                imgElement.style.width = "15.6%"; // 画像の幅を50%にする
-                document.getElementById("lapin-image").appendChild(imgElement);
-            }
-        </script>
-    </div>
-    <div id="scoreContainer"></div>
-    <script>
-        let scores = gameState["scores"]
-        let scoreContainer = document.getElementById("scoreContainer");
+    {% set lapinName = lapin_info['name'] %}
+    {% set lapinImageFilename = lapin_info['image'] %}
+    {% set lapinImageSrc = './static/' ~ lapinImageFilename %}
+    <img src="{{lapinImageSrc}}" alt="lapin-image" style="position: absolute; top: 145px; left: 43px; width: 300px; height: auto;">
 
-        for (let i = 0; i < scores.length; i++ ) {
-            let scoreElement = document.createElement("div");
-            scoreElement.className = "score";
-            scoreElement.style.top = `${137 + 80 * i}px`;
-            scoreElement.style.left = "820px";
-            scoreElement.textContent = `${Math.round(scores[i] * 100) / 100}`;// テキストを設定
-            scoreContainer.appendChild(scoreElement);
-        }
-    </script>
-    <div id="food-image"></div>
-    <script>
-        let food = "alfalfa" // gameState["food"]
-        // ファイル名をマップする辞書を作成
-        let filenameMap = {
-             "alfalfa": "alfalfa.jpg",
-               "apple": "apple.jpg",
-              "carrot": "carrot.jpg",
-              "papaya": "papaya.jpg",
-             "timothy": "timothy.jpg",
-            // 他の値に対するファイル名を追加
-        };
-        let foodImageFilename = filenameMap[food] || "";
-        if (foodImageFilename !== undefined && foodImageFilename !== null && foodImageFilename !== "") {
-                let imgElement = document.createElement("img");
-                imgElement.src = "/static/" + foodImageFilename; // 静的ファイルへのパスを直接指定
-                imgElement.alt = "Food Image";
-                imgElement.style.position = "absolute";
-                imgElement.style.top = "365px";
-                imgElement.style.left = "115px";
-                imgElement.style.width = "5.2%";
-                document.getElementById("food-image").appendChild(imgElement);
-            }
-    </script>
-    <div id="state">
-        <div id="container-food">
-            <h3>おやつ</h3>
-            選択：
-            <script>
-                if (gameState["food"] == null) {
-                    document.write("Not selected");
-                } else {
-                    document.write(gameState["food"]);
-                }
-            </script>
+    {% set food_selected = game_state['food'] %}
+    {% set food_list = cards_and_flags['food'] %}
+
+    <!-- おやつ候補の画像の表示 -->
+    {% set ns = namespace(left_position = 30, top_position = 620) %}
+    {% for food in food_list %}
+        {% if loop.index == 4 %}
+            {% set ns.left_position = 30 %}
+            {% set ns.top_position = 730 %}
+        {% endif %}
+        {% set left = ns.left_position ~ 'px' %}
+        {% set top = ns.top_position ~ 'px' %}
+        {% set img_id = food['label'] %}
+        {% set foodImageFileName = img_id ~ '.jpg' %}
+        {% set foodImageSrc = './static/' ~ foodImageFileName %}
+        <img id="{{img_id}}" src="{{foodImageSrc}}" style="position: absolute; width: 105px; height: 105px; top: {{top}}; left: {{left}}; ">
+        {% set ns.left_position = ns.left_position + 110 %}
+    {% endfor %}
+
+    <!-- 選択されているおやつの画像の表示 -->
+    {% if food_selected is not none %}
+        {% set foodImageFileName = food_selected ~ '.jpg' %}
+        {% set foodImageSrc = './static/' ~ foodImageFileName %}
+        <img id="img_food_selected" src="{{foodImageSrc}}" style="position: absolute; top: 458px; left: 145px; width: 96px; height: auto;">
+    {% endif %}
+
+    {% set cares_selected = game_state['cares'] %}
+    {% set care_list = cards_and_flags['care'] %}
+
+    <!-- お世話候補の画像の表示 -->
+    {% set ns = namespace(left_position = 420, top_position = 620) %}
+    {% for care in care_list %}
+        {% if loop.index == 7 %}
+            {% set ns.left_position = 420 %}
+            {% set ns.top_position = 730 %}
+        {% endif %}
+        {% set left = ns.left_position ~ 'px' %}
+        {% set top = ns.top_position ~ 'px' %}
+        {% set img_id = care['label'] %}
+        {% set careImageFileName = img_id ~ '.jpg' %}
+        {% set careImageSrc = './static/' ~ careImageFileName %}
+        <img id="{{img_id}}" src="{{careImageSrc}}" style="position: absolute; width: 105px; height: 105px; top: {{top}}; left: {{left}}; ">
+        {% set ns.left_position = ns.left_position + 110 %}
+    {% endfor %}
+
+    <!-- 選択されているお世話の画像の表示 -->
+    {% set ns = namespace(left_position = 370, top_position = 496) %}
+    {% for care_selected in cares_selected %}
+        {% if care_selected is not none %}
+            {% set careImageFileName = care_selected ~ '.jpg' %}
+            {% set careImageSrc = './static/' ~ careImageFileName %}
+            {% set id = 'img_care_selected_' ~ loop.index %}
+            {% set left = ns.left_position ~ 'px' %}
+            {% set top = ns.top_position ~ 'px' %}
+            <img id="{{id}}" src="{{careImageSrc}}" style="position: absolute; width: 97px; height: auto; top: {{top}}; left: {{left}}; ">
+            {% set ns.left_position = ns.left_position + 114 %}
+        {% endif %}
+    {% endfor %}
+
+    <!-- ゲート画像の表示 -->
+    {% set ns = namespace(left_position = 366, top_position = 90) %}
+    {% for care_selected in cares_selected %}
+        {% if care_selected is not none %}
+            {% set gateImageFileName = 'g_' ~ care_selected ~ '.jpg' %}
+            {% set gateImageSrc = './static/' ~ gateImageFileName %}
+            {% set id = 'img_gate_selected_' ~ loop.index %}
+            {% set left = ns.left_position ~ 'px' %}
+            {% set top = ns.top_position ~ 'px' %}
+            <img id="{{id}}" src="{{gateImageSrc}}" style="position: absolute; width: 106px; height: auto; top: {{top}}; left: {{left}}; ">
+            {% set ns.left_position = ns.left_position + 114 %}
+        {% endif %}
+    {% endfor %}
+
+    {% set scores_list = game_state['scores'] %}
+
+    <!-- すこあの表示 -->
+    {% set ns = namespace(top_position = 175) %}
+    {% for score in scores_list %}
+        {% set rounded_score = score|round(2) %}
+        {% set formatted_score = '{:.2f}'.format(rounded_score) %}
+        {% set left = 1028 ~ 'px' %}
+        {% set top = ns.top_position ~ 'px' %}
+        <div style="position: absolute; left: {{left}}; top: {{top}}; font-size: 28px; font-family: 'Arial', sans-serif; text-align: center;">
+            {{ formatted_score }}
         </div>
-        <div id="container-lapin">
-            <h3>うさぎ</h3>
-            <div id="lapin-name">
-                なまえ：
-                <script>
-                    document.write(lapinInfo["name"])
-                </script>
+        {% set ns.top_position = ns.top_position + 98 %}
+    {% endfor %}
+
+    <!-- ビットの測定結果の表示 -->
+    {% set result_data = result_data %}
+    {% if result_data['result_bit_list'] is not none %}
+        {% set ns = namespace(top_position = 175) %}
+        {% set result_bit_list = result_data['result_bit_list'] %}
+        {% for result_bit in result_bit_list %}
+            {% set left = 903 ~ 'px' %}
+            {% set top = ns.top_position ~ 'px' %}
+            <div id="result-bit-{{loop.index0}}" style="position: absolute; left: {{left}}; top: {{top}}; font-size: 28px; font-family: 'Arial', sans-serif; text-align: center;">
+                <!-- {{result_bit|int}} 初期は何も表示させないためにコメントアウト-->
             </div>
-            うさぎの画像：
-            <script>
-                // document.write(`<img src="${lapinInfo["image"]}">`);
-                document.write(lapinInfo["image"]);
-            </script>
+            {% set ns.top_position = ns.top_position + 98 %}
+        {% endfor %}
+    {% endif %}
+
+    <!-- 今回のスコアを表示 -->
+    {% if result_data['result_score'] is not none %}
+        {% set score = result_data['result_score']%}
+        {% set rounded_score = score|round(2) %}
+        {% set formatted_score = '{:.2f}'.format(rounded_score) %}
+        <div id="score" style="position: absolute; left: 995px; top: 485px; font-size: 40px; font-family: 'Arial', sans-serif; text-align: center;">
+            <!-- {{formatted_score}} 初期は何も表示させないためにコメントアウト-->
         </div>
-        <div id="container-care-1">
-            <h3>お世話</h3>
-            選択：
-            <script>
-                if (gameState["cares"] == null) {
-                    document.write("Not selected");
-                } else {
-                    document.write("<ul>");
-                    for (let i = 0; i < gameState["cares"].length; i++) {
-                        document.write(`<li>${gameState["cares"][i]}</li>`);
-                    }
-                    document.write("</ul>");
-                }
-            </script>
-        </div>
-        <div id="container-scores">
-            <ul>
-                <script>
-                    let scores = gameState["scores"]
-                    for (let i = 0; i < scores.length; i++ ) {
-                        document.write(`<li>${Math.round(scores[i] * 100) / 100}</li>`)
-                    }
-                </script>
-            </ul>
-        </div>
-    </div>
-    <div id="cards">
-        <h3>カード</h3>
-        <ul>
-            <script src="{{ url_for('static', filename='javascript/game.js') }}"></script>
-            <script>
-                write_cards(cardsAndFlags, "food", "{{ url_for('game') }}");
-                write_cards(cardsAndFlags, "care", "{{ url_for('game') }}");
-            </script>
-        </ul>
-    </div>
-    <div id="score">
-        <script>
-            if (score != null) {
-                score = Number(score);
-                document.write(`<p>${Math.round(score * 100) / 100}</p>`)
+    {% endif %}
+
+    <!-- ゲーム実行ボタン -->
+    <input type="button" id="execute_button" value="実行" onclick="send_to_python()" style="position: absolute; width: 70px; height: 40px; top: 98px; left: 155px; font-size: 24px;">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        var foodList = {{ food_list|tojson|safe }};
+        var careList = {{ care_list|tojson|safe }};
+        var max_care = 3
+
+        function send_to_python() {
+            // 選択されたおやつ画像を判別
+            var selectedObj =  document.getElementById("img_food_selected");
+            var selected_food = null;
+            if (selectedObj) {
+                var src_file_name = selectedObj.getAttribute("src");
+                var selected_food = src_file_name.split("/")[2].split(".")[0];
             }
-        </script>
-    </div>
-</div>
+ 
+            var selected_care = [];
+            for (var i = 0; i < max_care; i++) {
+                var Check_id = 'img_care_selected_' + i;
+                var selectedObj = document.getElementById(Check_id)
+                if (selectedObj) {
+                    var src_file_name = selectedObj.getAttribute("src");
+                    var care_name = src_file_name.split("/")[2].split(".")[0];
+                    selected_care.push(care_name);
+                }
+            }
+
+            if (selected_food != null && selected_care.length === 0) {
+                var alertMessage = 'お世話を少なくとも1つ選択してください';
+                alert(alertMessage);
+            } else {
+                var send_data = selected_food ? {'selected_food': selected_food, 'selected_care': selected_care} : {'selected_care': selected_care};
+                $.ajax("/call_from_ajax", {
+                    type: "post",
+                    contentType: "application/json", 
+                    data: JSON.stringify(send_data), // JSON形式で送信
+                }).done(function(received_data) {    // 戻ってきたのはJSON（文字列）
+                    var answer = received_data["answer"];
+                    var result_score = answer["result_score"]
+                    var result_bit_list = answer["result_bit_list"]
+
+                    var element_score = document.getElementById("score")
+                    element_score.innerText = result_score.toFixed(2);
+                    var element_bit0 = document.getElementById("result-bit-0")
+                    element_bit0.innerText = result_bit_list[0];
+                    var element_bit1 = document.getElementById("result-bit-1")
+                    element_bit1.innerText = result_bit_list[1];
+                    var element_bit1 = document.getElementById("result-bit-2")
+                    element_bit1.innerText = result_bit_list[2];
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX request failed: " + textStatus + ", " + errorThrown);
+                });
+            }
+        }
+
+    </script>
+    <script type="text/javascript" src="./static/javascript/main.js" ></script>
+
 </body>
 </html>
